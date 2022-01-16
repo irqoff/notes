@@ -1,0 +1,48 @@
+# vi: set ft=ruby :
+
+require 'fileutils'
+
+Vagrant.require_version ">= 2.0.0"
+
+CONFIG = File.join(File.dirname(__FILE__), 'vagrant_config.rb')
+
+OS = {
+  "almalinux8"          => "almalinux/8",
+  "almalinux8-bento"    => "bento/almalinux-8",
+  "centos8"             => "centos/8",
+  "centos8-bento"       => "bento/centos-8",
+  "fedora34"            => "fedora/34-cloud-base",
+  "fedora35"            => "fedora/35-cloud-base",
+  "oraclelinux8"        => "generic/oracle8",
+  "rhel8"               => "generic/rhel8",
+}
+
+if File.exist?(CONFIG)
+  require CONFIG
+end
+
+$num_instances ||= 2
+$os ||= "centos8"
+$vm_memory ||= 2048
+$vm_cpus ||= 2
+$vm_gui ||= true
+
+$box = OS[$os]
+
+Vagrant.configure("2") do |config|
+
+  config.vm.box = $box
+
+  (1..$num_instances).each do |i|
+    config.vm.define vm_name = "rhcsa-%01d" % [i] do |node|
+      node.vm.hostname = vm_name
+
+      node.vm.provider :virtualbox do |vb|
+        vb.memory = $vm_memory
+        vb.cpus = $vm_cpus
+        vb.gui = $vm_gui
+      end
+    end
+  end
+
+end

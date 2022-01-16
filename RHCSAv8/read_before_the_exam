@@ -1,0 +1,88 @@
+# read_before_the_exam
+
+## acl.5
+```
+     The following entry tag types are defined:
+
+           ACL_USER_OBJ    The ACL_USER_OBJ entry denotes access rights for the file owner.
+
+           ACL_USER        ACL_USER entries denote access rights for users identified by the en‐
+                           try's qualifier.
+
+           ACL_GROUP_OBJ   The ACL_GROUP_OBJ entry denotes access rights for the file group.
+
+           ACL_GROUP       ACL_GROUP entries denote access rights for groups identified by the
+                           entry's qualifier.
+
+           ACL_MASK        The ACL_MASK entry denotes the maximum access rights that can be
+                           granted by entries of type ACL_USER, ACL_GROUP_OBJ, or ACL_GROUP.
+
+           ACL_OTHER       The ACL_OTHER entry denotes access rights for processes that do not
+                           match any other entry in the ACL.
+```
+
+```
+OBJECT CREATION AND DEFAULT ACLs
+     The access ACL of a file object is initialized when the object is created with any of the
+     creat(), mkdir(), mknod(), mkfifo(), or open() functions. If a default ACL is associated
+     with a directory, the mode parameter to the functions creating file objects and the default
+     ACL of the directory are used to determine the ACL of the new object:
+
+     1.   The new object inherits the default ACL of the containing directory as its access ACL.
+
+     2.   The access ACL entries corresponding to the file permission bits are modified so that
+          they contain no permissions that are not contained in the permissions specified by the
+          mode parameter.
+
+     If no default ACL is associated with a directory, the mode parameter to the functions creat‐
+     ing file objects and the file creation mask (see umask(2)) are used to determine the ACL of
+     the new object:
+
+     1.   The new object is assigned an access ACL containing entries of tag types ACL_USER_OBJ,
+          ACL_GROUP_OBJ, and ACL_OTHER. The permissions of these entries are set to the permis‐
+          sions specified by the file creation mask.
+
+     2.   The access ACL entries corresponding to the file permission bits are modified so that
+          they contain no permissions that are not contained in the permissions specified by the
+          mode parameter.
+
+ACCESS CHECK ALGORITHM
+     A process may request read, write, or execute/search access to a file object protected by an
+     ACL. The access check algorithm determines whether access to the object will be granted.
+
+     1.   If the effective user ID of the process matches the user ID of the file object owner,
+          then
+
+                if the ACL_USER_OBJ entry contains the requested permissions, access is granted,
+
+                else access is denied.
+
+     2.   else if the effective user ID of the process matches the qualifier of any entry of type
+          ACL_USER, then
+
+                if the matching ACL_USER entry and the ACL_MASK entry contain the requested  per‐
+                missions, access is granted,
+
+                else access is denied.
+
+     3.   else if the effective group ID or any of the supplementary group IDs of the process
+          match the file group or the qualifier of any entry of type ACL_GROUP, then
+
+                if the ACL contains an ACL_MASK entry, then
+
+                      if the ACL_MASK entry and any of the matching  ACL_GROUP_OBJ  or  ACL_GROUP
+                      entries contain the requested permissions, access is granted,
+
+                      else access is denied.
+
+                else (note that there can be no ACL_GROUP entries without an ACL_MASK entry)
+
+                      if  the  ACL_GROUP_OBJ  entry contains the requested permissions, access is
+                      granted,
+
+                      else access is denied.
+
+     4.   else if the ACL_OTHER entry contains the requested permissions, access is granted.
+
+     5.   else access is denied.
+```
