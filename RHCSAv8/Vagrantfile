@@ -26,12 +26,18 @@ $os ||= "centos8"
 $vm_memory ||= 2048
 $vm_cpus ||= 2
 $vm_gui ||= true
+$disk_size ||= "10GB"
 
 $box = OS[$os]
 
 Vagrant.configure("2") do |config|
 
   config.vm.box = $box
+
+  unless Vagrant.has_plugin?("vagrant-disksize")
+    system "vagrant plugin install vagrant-disksize"
+  end
+  config.disksize.size = $disk_size
 
   (1..$num_instances).each do |i|
     config.vm.define vm_name = "rhcsa-%01d" % [i] do |node|
@@ -44,6 +50,25 @@ Vagrant.configure("2") do |config|
         vb.linked_clone = true
         vb.customize ["modifyvm", :id, "--vram", "8"]
         vb.customize ["modifyvm", :id, "--audio", "none"]
+
+
+        unless File.exist?("disk-#{i}-0.vdi")
+          vb.customize ['storagectl', :id,
+                        '--name', 'RHCSA',
+                        '--add', 'sata']
+        end
+
+        (0..2).each do |d|
+          vb.customize ['createmedium',
+                        'disk', '--filename', "disk-#{i}-#{d}",
+                        '--size', '10000'] unless File.exist?("disk-#{i}-#{d}.vdi")
+          vb.customize ['storageattach', :id,
+                         '--storagectl', 'RHCSA',
+                         '--port', 3 + d,
+                         '--device', 0,
+                         '--type', 'hdd',
+                         '--medium', "disk-#{i}-#{d}.vdi"]
+        end
       end
     end
   end
