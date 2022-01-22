@@ -86,3 +86,74 @@ ACCESS CHECK ALGORITHM
 
      5.   else access is denied.
 ```
+
+## lvmthin.7
+```
+Thin Usage
+       The primary method for using lvm thin provisioning:
+
+   1. create ThinDataLV
+       Create an LV that will hold thin pool data.
+
+       lvcreate -n ThinDataLV -L LargeSize VG
+
+       Example
+       # lvcreate -n pool0 -L 10G vg
+
+   2. create ThinMetaLV
+       Create an LV that will hold thin pool metadata.
+
+       lvcreate -n ThinMetaLV -L SmallSize VG
+
+       Example
+       # lvcreate -n pool0meta -L 1G vg
+
+       # lvs
+         LV        VG Attr       LSize
+         pool0     vg -wi-a----- 10.00g
+         pool0meta vg -wi-a----- 1.00g
+
+   3. create ThinPoolLV
+       Combine the data and metadata LVs into a thin pool LV.
+       ThinDataLV is renamed to hidden ThinPoolLV_tdata.
+       ThinMetaLV is renamed to hidden ThinPoolLV_tmeta.
+       The new ThinPoolLV takes the previous name of ThinDataLV.
+
+       lvconvert --type thin-pool --poolmetadata VG/ThinMetaLV VG/ThinDataLV
+
+       Example
+       # lvconvert --type thin-pool --poolmetadata vg/pool0meta vg/pool0
+
+       # lvs vg/pool0
+         LV    VG Attr       LSize  Pool Origin Data% Meta%
+         pool0 vg twi-a-tz-- 10.00g      0.00   0.00
+
+       # lvs -a
+         LV            VG Attr       LSize
+         pool0         vg twi-a-tz-- 10.00g
+         [pool0_tdata] vg Twi-ao---- 10.00g
+         [pool0_tmeta] vg ewi-ao---- 1.00g
+
+   4. create ThinLV
+       Create a new thin LV from the thin pool LV.
+       The thin LV is created with a virtual size.
+       Multiple new thin LVs may be created in the thin pool.
+       Thin LV names must be unique in the VG.
+       The '--type thin' option is inferred from the virtual size option.
+       The --thinpool argument specifies which thin pool will
+       contain the ThinLV.
+
+       lvcreate -n ThinLV -V VirtualSize --thinpool ThinPoolLV VG
+
+       Example
+       Create a thin LV in a thin pool:
+       # lvcreate -n thin1 -V 1T --thinpool pool0 vg
+
+       Create another thin LV in the same thin pool:
+       # lvcreate -n thin2 -V 1T --thinpool pool0 vg
+
+       # lvs vg/thin1 vg/thin2
+         LV    VG Attr       LSize Pool  Origin Data%
+         thin1 vg Vwi-a-tz-- 1.00t pool0        0.00
+         thin2 vg Vwi-a-tz-- 1.00t pool0        0.00
+```
