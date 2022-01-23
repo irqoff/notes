@@ -157,3 +157,48 @@ Thin Usage
          thin1 vg Vwi-a-tz-- 1.00t pool0        0.00
          thin2 vg Vwi-a-tz-- 1.00t pool0        0.00
 ```
+
+## vdo.8
+```
+EXAMPLES
+       Creation of a VDO device named vdo0, with a 10 terabyte thinly-provisioned logical address
+       size:
+
+       # vdo create --name=vdo0 --device=/dev/sdb1 --vdoLogicalSize=10T
+       Creating VDO vdo0
+       Starting VDO vdo0
+       Starting compression on VDO vdo0
+       VDO instance 1 volume is ready at /dev/mapper/vdo0
+       #
+```
+
+## systemd.1
+```
+KERNEL COMMAND LINE
+       When run as the system instance systemd parses a number of options listed below. They can
+       be specified as kernel command line arguments[8], or through the "SystemdOptions" EFI
+       variable (on EFI systems). The kernel command line has higher priority. Following
+       variables are understood:
+
+       systemd.unit=, rd.systemd.unit=
+           Overrides the unit to activate on boot. Defaults to default.target. This may be used
+           to temporarily boot into a different boot unit, for example rescue.target or
+           emergency.service. See systemd.special(7) for details about these units. The option
+           prefixed with "rd."  is honored only in the initial RAM disk (initrd), while the one
+           that is not prefixed only in the main system.
+```
+
+## dracut.cmdline.7
+```
+   Standard
+       init=<path to real init>
+           specify the path to the init program to be started after the initramfs has finished
+
+       root=<path to blockdevice>
+           specify the block device to use as the root filesystem.
+```
+
+```
+       rd.break
+           drop to a shell at the end
+```
