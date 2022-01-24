@@ -202,3 +202,34 @@ KERNEL COMMAND LINE
        rd.break
            drop to a shell at the end
 ```
+
+
+## auto.master.5
+```
+FORMAT
+       Master map entries have three fields separated by an arbitrary number of spaces  or  tabs.
+       Lines  beginning  with  # are comments. The first field is the mount point described above
+       and the second field is the name of the map to be consulted for the mount  point  followed
+       by the third field which contains options to be applied to all entries in the map.
+
+       The format of a master map entry is:
+
+       mount-point [map-type[,format]:]map [options]
+```
+
+```
+SUN FORMAT
+       This is a description of the text file format.  Other methods of  specifying  these  files
+       may exist.  All empty lines or lines beginning with # are ignored. The basic format of one
+       line in such maps is:
+
+       key [-options] location
+
+       key
+              For indirect mounts this is the part of the path name between the mount  point  and
+              the  path  into  the filesystem when it is mounted. Usually you can think about the
+              key as a sub-directory name below the autofs managed mount point.
+
+              For direct mounts this is the full path of each mount point. This map is always as‐
+              sociated with the /- mount point in the master map.
+```
