@@ -1,7 +1,7 @@
 ---
 
 - hosts: dbservers
-  become: yes
+  become: true
   tasks:
     - name: Install signing key
       apt_key:
@@ -9,13 +9,14 @@
         id: ACCC4CF8
     - name: Install repository
       apt_repository:
-        repo: "deb http://apt.postgresql.org/pub/repos/apt/ {{ ansible_distribution_release }}-pgdg main"
+        repo: "deb http://apt.postgresql.org/pub/repos/apt/ \
+          {{ ansible_distribution_release }}-pgdg main"
         update_cache: true
     - name: Install PostgreSQL
       apt:
         name: postgresql-14
     - name: Ensure PostgreSQL is running
       service:
-         name: postgresql
-         enabled: true
-         state: started
+        name: postgresql
+        enabled: true
+        state: started

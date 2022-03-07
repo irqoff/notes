@@ -1,4 +1,4 @@
-# Homework 0
+# Homework 02
 
 Apple Terraform configuration:
 ```
