@@ -1,2 +1,7 @@
+**/.terraform.lock.hcl
+**/.terraform
+**/terraform.tfstate*
+**/terraform.tfvars
+OTUS_PostgreSQL_2022/homework02/hosts
 RHCSAv8/.vagrant
 RHCSAv8/disk-*
