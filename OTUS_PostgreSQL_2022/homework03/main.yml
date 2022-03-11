@@ -1,0 +1,52 @@
+---
+
+- hosts: dbservers
+  become: true
+  tasks:
+    - name: Install prerequisites
+      ansible.builtin.apt:
+        name:
+          - apt-transport-https
+          - python3-pip
+        update_cache: "yes"
+
+    - name: Add Docker GPG key
+      ansible.builtin.apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+
+    - name: Add Docker APT repository
+      ansible.builtin.apt_repository:
+        repo: "deb [arch=amd64] https://download.docker.com/linux/\
+          {{ ansible_distribution|lower }} {{ ansible_distribution_release }} \
+          stable"
+
+    - name: Install Docker
+      ansible.builtin.apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+        update_cache: "yes"
+
+    - name: Add to the docker group
+      ansible.builtin.user:
+        name: "{{ ansible_env['USER'] }}"
+        groups: docker
+        append: "yes"
+
+    - name: Check /var/lib/docker
+      ansible.builtin.file:
+        path: /var/lib/postgres
+        state: directory
+        mode: '0770'
+
+    - name: Install docker lib for community.docker.docker_image
+      ansible.builtin.pip:
+        name: docker
+
+    - name: Pull images
+      community.docker.docker_image:
+        name: "{{ item }}"
+        source: pull
+      loop:
+        - postgres:14.2
