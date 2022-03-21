@@ -1,0 +1,64 @@
+---
+
+- hosts: dbservers
+  become: true
+  tasks:
+    - name: Install signing key
+      ansible.builtin.apt_key:
+        url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
+        id: ACCC4CF8
+
+    - name: Install repository
+      ansible.builtin.apt_repository:
+        repo: "deb http://apt.postgresql.org/pub/repos/apt/ \
+          {{ ansible_distribution_release }}-pgdg main"
+        update_cache: true
+
+    - name: Install PostgreSQL
+      ansible.builtin.apt:
+        name: postgresql-14
+
+    - name: Ensure PostgreSQL is stoped
+      ansible.builtin.service:
+        name: postgresql
+        enabled: true
+        state: stopped
+
+    - name: Check data directory                                                                                                                                                                         
+      ansible.builtin.file:                                                                                                                                                                                        
+        path: "{{ item.dir }}"                                                                                                                                                                                     
+        state: directory                                                                                                                                                                                           
+        mode: "{{ item.mode }}"                                                                                                                                                                                    
+      loop:                                                                                                                                                                                                        
+        - dir: /var/lib/postgresql/14/main
+          mode: '0750' 
+
+    - name: Create a ext4 filesystem on /dev/sdb
+      community.general.filesystem:
+        fstype: ext4
+        dev: /dev/sdb
+
+    - name: Mount up device by label
+      ansible.posix.mount:
+        path: /var/lib/postgresql/14/main
+        src: /dev/sdb
+        fstype: ext4
+        state: mounted
+
+    - name: Check data directory
+      ansible.builtin.file:
+        path: "{{ item.dir }}"
+        state: directory
+        owner: "{{ item.owner }}"
+        group: "{{ item.group }}"
+        mode: "{{ item.mode }}"
+      loop:
+        - dir: /var/lib/postgresql/14/main
+          mode: '0750'
+          owner: postgres
+          group: postgres
+
+    - name: Ensure PostgreSQL is running
+      ansible.builtin.service:
+        name: postgresql
+        state: started
