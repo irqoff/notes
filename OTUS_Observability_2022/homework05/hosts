@@ -1,0 +1,8 @@
+[nginx]
+35.228.163.31
+
+[prometheus]
+34.88.233.112
+
+[prometheus:vars]
+nginx_ip=10.166.0.21
