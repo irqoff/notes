@@ -45,7 +45,7 @@ Save my exporter metric:
 ```
 ssh ubuntu@$(terraform output prometheus_ip|tr -d \") curl -s localhost:8000/metrics > irqoff_exporter.out
 ```
-file - [](./irqoff_exporter.out)
+file - [file](./irqoff_exporter.out)
 
 ## Alertmanager
 
