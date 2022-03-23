@@ -3,5 +3,6 @@
 **/terraform.tfstate*
 **/terraform.tfvars
 OTUS_PostgreSQL_2022/homework*/hosts
+OTUS_Observability_2022/homework*/hosts
 RHCSAv8/.vagrant
 RHCSAv8/disk-*
