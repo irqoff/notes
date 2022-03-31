@@ -46,4 +46,4 @@ up{}
 
 Use data link to create the drill down dashboard:
 
-![](./drill_down.png)
+![](./img/drill_down.png)
