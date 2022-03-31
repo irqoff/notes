@@ -1,0 +1,260 @@
+---
+
+- hosts: nginx:prometheus
+  become: true
+  tasks:
+    - name: Install prerequisites
+      ansible.builtin.apt:
+        name:
+          - apt-transport-https
+          - python3-pip
+        update_cache: "yes"
+
+    - name: Add Docker GPG key
+      ansible.builtin.apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+
+    - name: Add Docker APT repository
+      ansible.builtin.apt_repository:
+        repo: "deb [arch=amd64] https://download.docker.com/linux/\
+          {{ ansible_distribution|lower }} {{ ansible_distribution_release }} \
+          stable"
+
+    - name: Install Docker
+      ansible.builtin.apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+        update_cache: "yes"
+
+    - name: Add to the docker group
+      ansible.builtin.user:
+        name: "{{ ansible_env['USER'] }}"
+        groups: docker
+        append: "yes"
+
+    - name: Install docker lib for community.docker.docker_image
+      ansible.builtin.pip:
+        name: docker
+
+    - name: Create node-exporter container
+      become: true
+      docker_container:
+        name: node-exporter
+        image: quay.io/prometheus/node-exporter
+        capabilities:
+          - sys_time
+        command:
+          - '--collector.filesystem.ignored-mount-points="^/(sys|proc|dev|host|etc)($|/)"'
+          - '--collector.diskstats.ignored-devices=^(ram|loop|fd)d+$'
+          - '--web.listen-address=0.0.0.0:9100'
+          - '--log.level=info'
+          - '--collector.processes'
+          - '--path.rootfs /host'
+        detach: true
+        network_mode: host
+        pid_mode: host
+        state: present
+        volumes:
+          - "/:/host:ro,rslave"
+      notify: restart node-exporter
+    
+    - name: Create node-exporter service file
+      copy:
+        dest: /etc/systemd/system/node-exporter.service
+        src: node-exporter.service
+        mode: 0664
+      notify: Restart node-exporter
+      register: create
+
+    - name: Reload systemd
+      meta: flush_handlers
+    
+    - name: Enable node-exporter service
+      systemd:
+        name: node-exporter
+        state: started
+        enabled: yes
+
+  handlers:
+    - name: Restart node-exporter
+      systemd:
+        name: node-exporter
+        daemon_reload: yes
+        state: restarted
+
+- hosts: nginx
+  become: true
+  vars:
+    nginx_exporter: quay.io/martinhelmich/prometheus-nginxlog-exporter:v1
+  tasks:
+    - name: Pull images
+      community.docker.docker_image:
+        name: "{{ item }}"
+        source: pull
+      loop:
+        - nginx
+        - php:7-fpm
+        - "{{ nginx_exporter }}"
+
+    - name: Create a nginx network
+      community.docker.docker_network:
+         name: nginx
+
+    - name: Check nginx-exporter directory
+      ansible.builtin.file:
+        path: "{{ item.dir }}"
+        state: directory
+        mode: "{{ item.mode }}"
+      loop:
+        - dir: /srv/log
+          mode: '0750'
+
+    - name: Copy nginx config
+      ansible.builtin.copy:
+        src: default.conf
+        dest: /srv/default.conf
+        owner: root
+        group: root
+        mode: '0640'
+
+    - name: Copy index.php
+      ansible.builtin.copy:
+        src: index.php
+        dest: /srv/index.php
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Copy nginxlog-exporter config
+      ansible.builtin.copy:
+        src: config.hcl
+        dest: /srv/config.hcl
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Re-create a nginx container
+      community.docker.docker_container:
+        name: nginx
+        image: nginx
+        state: started
+        restart_policy: always
+        recreate: yes
+        published_ports:
+          - 80:80
+        volumes:
+          - /srv/default.conf:/etc/nginx/conf.d/default.conf
+          - /srv/log:/var/log/nginx
+        networks:
+          - name: nginx
+
+    - name: Re-create a php container
+      community.docker.docker_container:
+        name: php
+        image: php:7-fpm
+        state: started
+        restart_policy: always
+        recreate: yes
+        volumes:
+          - /srv/index.php:/srv/index.php
+        networks:
+          - name: nginx
+
+    - name: Re-create a nginx-exporter container
+      community.docker.docker_container:
+        name: nginx-exporter
+        image: "{{ nginx_exporter }}"
+        state: started
+        recreate: yes
+        published_ports:
+          - 4040:4040
+        volumes:
+          - /srv/log:/var/log/nginx
+          - /srv/config.hcl:/etc/prometheus-nginxlog-exporter.hcl
+        networks:
+          - name: nginx
+        command:
+          - -config-file
+          - /etc/prometheus-nginxlog-exporter.hcl
+
+- hosts: prometheus
+  become: true
+  tasks:
+    - name: Pull images
+      community.docker.docker_image:
+        name: "{{ item }}"
+        source: pull
+      loop:
+        - prom/alertmanager
+        - prom/prometheus
+
+    - name: Create a nginx network
+      community.docker.docker_network:
+         name: prometheus
+
+    - name: Copy prometheus config
+      ansible.builtin.template:
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
+        owner: root
+        group: root
+        mode: "{{ item.mode }}"
+      loop:
+        - src: prometheus.yml.j2
+          dest: /srv/prometheus.yml
+          mode: '0644'
+
+    - name: Re-create a prometheus container
+      community.docker.docker_container:
+        name: prometheus
+        image: prom/prometheus
+        state: started
+        recreate: yes
+        published_ports:
+          - 9090:9090
+        volumes:
+          - /srv/prometheus.yml:/etc/prometheus/prometheus.yml
+          - /srv/rules.yml:/etc/prometheus/rules.yml
+        networks:
+          - name: prometheus
+
+
+    - name: Check Grafana directory
+      ansible.builtin.file:
+        path: "{{ item.dir }}"
+        state: directory
+        mode: "{{ item.mode }}"
+      loop:
+        - dir: /srv/grafana
+          mode: '0777'
+        - dir: /srv/grafana/storage
+          mode: '0777'
+
+    - name: Copy Grafana datasource config
+      ansible.builtin.template:
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
+        owner: root
+        group: root
+        mode: "{{ item.mode }}"
+      loop:
+        - src: datasources.yml.j2
+          dest: /srv/datasources.yml
+          mode: '0644'
+
+    - name: Start Grafana container
+      docker_container:
+        name: grafana
+        image: grafana/grafana:8.4.5
+        published_ports:
+          - 3000:3000 
+        networks:
+          - name: prometheus
+        volumes:
+          - /srv/datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml 
+          - /srv/grafana/storage:/var/lib/grafana
+        env: 
+          GF_SECURITY_ADMIN_USER: admin
+          GF_SECURITY_ADMIN_PASSWORD: admin
