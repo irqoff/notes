@@ -1,4 +1,4 @@
-# Homework 02
+# Homework 08
 
 Apple Terraform configuration:
 ```
@@ -42,4 +42,4 @@ Results:
 
 ## Conclusion
 
-Performance depends little on autovacuum if you have bottle neck on disk writing.
+Performance depends little on autovacuum if you have bottleneck on disk writing.
