@@ -1,0 +1,35 @@
+---
+
+- hosts: dbservers
+  become: true
+  vars:
+    config_prefix: ''
+  tasks:
+    - name: Install signing key
+      apt_key:
+        url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
+        id: ACCC4CF8
+    - name: Install repository
+      apt_repository:
+        repo: "deb http://apt.postgresql.org/pub/repos/apt/ \
+          {{ ansible_distribution_release }}-pgdg main"
+        update_cache: true
+    - name: Install PostgreSQL
+      apt:
+        name: postgresql-14
+    - name: Ensure PostgreSQL is running
+      service:
+        name: postgresql
+        enabled: true
+        state: started
+    - name: Copy postgresql.conf
+      copy:
+        src: postgresql{{ config_prefix }}.conf
+        dest: /etc/postgresql/14/main/postgresql.conf
+      notify: Restart PostgreSQL
+
+  handlers:
+    - name: Restart PostgreSQL
+      ansible.builtin.service:
+        name: postgresql
+        state: restarted
