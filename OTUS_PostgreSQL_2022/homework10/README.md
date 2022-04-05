@@ -223,7 +223,7 @@ UPDATE 1
 otus=*# UPDATE test SET number=number+1 WHERE id=2;
 ```
 
-## Step Two
+### Step Two
 On session 1:
 ```
 otus=*# UPDATE test SET number=number+3 WHERE id=3;
@@ -302,11 +302,7 @@ Then we wait 10 seconds and run on session 2:
 ```
 otus=# BEGIN;
 BEGIN
-otus=*# SELECT pg_advisory_lock(5);
- pg_advisory_lock 
-------------------
- 
-(1 row)
+otus=*# VALUES(pg_advisory_lock(5));
 otus=*# UPDATE test2 SET name=id RETURNING *,pg_sleep(5),pg_advisory_lock(5+id);
 ```
 
