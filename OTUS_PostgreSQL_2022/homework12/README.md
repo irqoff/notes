@@ -17,7 +17,7 @@ ansible-playbook -i hosts main.yml -u ubuntu
 
 ## Default configuration
 
-[Configuration file](./postgresql.conf)
+[Configuration file](./files/postgresql.conf)
 
 Run pgbench:
 ```
@@ -38,7 +38,7 @@ tps = 680.615373 (without initial connection time)
 
 ## PGTune (web profile)
 
-[Configuration file](./postgresql_pgtune.conf)
+[Configuration file](./files/postgresql_pgtune.conf)
 
 Update config:
 ```
@@ -61,7 +61,7 @@ tps = 710.480038 (without initial connection time)
 
 ## fsync off
 
-[Configuration file](./postgresql_fsync.conf)
+[Configuration file](./files/postgresql_fsync.conf)
 
 Update config: 
 ```
@@ -84,7 +84,7 @@ tps = 1198.802152 (without initial connection time)
 
 ## synchronous commit off
 
-[Configuration file](./postgresql_asynchronous.conf)
+[Configuration file](./files/postgresql_asynchronous.conf)
 
 Update config:
 ```
@@ -107,7 +107,7 @@ tps = 1165.450563 (without initial connection time)
 
 ## Aggressive
 
-[Configuration file](./postgresql_all.conf)
+[Configuration file](./files/postgresql_all.conf)
 
 Update config:
 ```
