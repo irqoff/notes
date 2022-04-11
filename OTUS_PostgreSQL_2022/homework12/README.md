@@ -25,6 +25,7 @@ ssh -L 19998:localhost:19999 ubuntu@$(terraform output nat_ip|tr -d \")
 pgbench -i postgres
 postgres@postgresql:~$ pgbench -c8 -P 30 -T 600 -U postgres postgres
 ```
+
 Result:
 ```
 latency average = 11.752 ms
@@ -33,7 +34,7 @@ initial connection time = 23.016 ms
 tps = 680.615373 (without initial connection time)
 ```
 
-![](./img/postgres.png)
+![](./img/postgresql.png)
 
 ## PGTune (web profile)
 
@@ -46,6 +47,7 @@ ansible-playbook -i hosts main.yml -u ubuntu -e 'config_prefix=_pgtune'
 Run pgbench:
 ```
 postgres@postgresql:~$ pgbench -c8 -P 30 -T 600 -U postgres postgres
+```
 
 Result:
 ```
@@ -68,6 +70,7 @@ ansible-playbook -i hosts main.yml -u ubuntu -e 'config_prefix=_fsync'
 Run pgbench:
 ```
 postgres@postgresql:~$ pgbench -c8 -P 30 -T 600 -U postgres postgres
+```
 
 Result:
 ```
@@ -90,6 +93,7 @@ ansible-playbook -i hosts main.yml -u ubuntu -e 'config_prefix=_asynchronous'
 Run pgbench:
 ```
 postgres@postgresql:~$ pgbench -c8 -P 30 -T 600 -U postgres postgres
+```
 
 Result:
 ```
@@ -112,6 +116,7 @@ ansible-playbook -i hosts main.yml -u ubuntu -e 'config_prefix=_all'
 Run pgbench:
 ```
 postgres@postgresql:~$ pgbench -c8 -P 30 -T 600 -U postgres postgres
+```
 
 Result:
 ```
