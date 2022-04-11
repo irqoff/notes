@@ -26,12 +26,12 @@ pgbench -i postgres
 postgres@postgresql:~$ pgbench -c8 -P 30 -T 600 -U postgres postgres
 ```
 Result:
-'''
+```
 latency average = 11.752 ms
 latency stddev = 10.931 ms
 initial connection time = 23.016 ms
 tps = 680.615373 (without initial connection time)
-'''
+```
 
 ![](./img/postgres.png)
 
@@ -48,12 +48,12 @@ Run pgbench:
 postgres@postgresql:~$ pgbench -c8 -P 30 -T 600 -U postgres postgres
 
 Result:
-'''
+```
 latency average = 11.258 ms
 latency stddev = 6.864 ms
 initial connection time = 26.536 ms
 tps = 710.480038 (without initial connection time)
-'''
+```
 
 ![](./img/pgtune.png)
 
@@ -70,12 +70,12 @@ Run pgbench:
 postgres@postgresql:~$ pgbench -c8 -P 30 -T 600 -U postgres postgres
 
 Result:
-'''
+```
 latency average = 6.671 ms
 latency stddev = 18.853 ms
 initial connection time = 24.361 ms
 tps = 1198.802152 (without initial connection time)
-'''
+```
 
 ![](./img/fsync.png)
 
@@ -92,12 +92,12 @@ Run pgbench:
 postgres@postgresql:~$ pgbench -c8 -P 30 -T 600 -U postgres postgres
 
 Result:
-'''
+```
 latency average = 6.862 ms
 latency stddev = 19.345 ms
 initial connection time = 29.403 ms
 tps = 1165.450563 (without initial connection time)
-'''
+```
 
 ![](./img/asynchronous.png)
 
@@ -114,12 +114,12 @@ Run pgbench:
 postgres@postgresql:~$ pgbench -c8 -P 30 -T 600 -U postgres postgres
 
 Result:
-'''
+```
 latency average = 6.876 ms
 latency stddev = 19.264 ms
 initial connection time = 32.515 ms
 tps = 1163.251067 (without initial connection time)
-'''
+```
 
 ![](./img/all.png)
 
