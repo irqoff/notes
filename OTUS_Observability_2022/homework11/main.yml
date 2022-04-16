@@ -1,0 +1,164 @@
+---
+
+- hosts: elk
+  become: true
+  tasks:
+    - name: Install prerequisites
+      ansible.builtin.apt:
+        name:
+          - apt-transport-https
+          - python3-pip
+        update_cache: "yes"
+
+    - name: Add Docker GPG key
+      ansible.builtin.apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+
+    - name: Add Docker APT repository
+      ansible.builtin.apt_repository:
+        repo: "deb [arch=amd64] https://download.docker.com/linux/\
+          {{ ansible_distribution|lower }} {{ ansible_distribution_release }} \
+          stable"
+
+    - name: Install Docker
+      ansible.builtin.apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+        update_cache: "yes"
+
+    - name: Add to the docker group
+      ansible.builtin.user:
+        name: "{{ ansible_env['USER'] }}"
+        groups: docker
+        append: "yes"
+
+    - name: Install docker lib for community.docker.docker_image
+      ansible.builtin.pip:
+        name: docker
+
+- hosts: elk
+  become: true
+  vars:
+    es_image: docker.elastic.co/elasticsearch/elasticsearch:8.1.2
+    kibana_image: docker.elastic.co/kibana/kibana:8.1.2
+  tasks:
+    - name: Pull images
+      community.docker.docker_image:
+        name: "{{ item }}"
+        source: pull
+      loop:
+        - "{{ es_image }}"
+        - "{{ kibana_image }}"
+
+    - ansible.posix.sysctl:
+       name: vm.max_map_count
+       value: '262144'
+
+    - name: Create a elk network
+      community.docker.docker_network:
+         name: elk
+
+    - name: Create a es container
+      community.docker.docker_container:
+        name: elasticsearch
+        image: "{{ es_image }}"
+        state: started
+        restart_policy: always
+        recreate: yes
+        published_ports:
+          - 9200:9200
+          - 9300:9300
+        networks:
+          - name: elk
+
+    - name: Create a kibana container
+      community.docker.docker_container:
+        name: kibana
+        image: "{{ kibana_image }}"
+        state: started
+        restart_policy: always
+        published_ports:
+          - 5601:5601
+        networks:
+          - name: elk
+
+- hosts: elk
+  become: yes
+  vars:
+    heartbeat_package_state: latest
+    heartbeat_conf_manage: yes
+    heartbeat_conf:
+      heartbeat:
+        monitors:
+          - type: http
+            schedule: '*/1 * * * * * *'
+            urls:
+              - "https://otus.ru"
+              - "https://google.com"
+      output:
+        elasticsearch:
+          enabled: true
+          hosts:
+            - localhost:9200
+          protocol: "https"
+          username: elastic
+          password: "{{ es_password }}"
+          ssl.verification_mode: none
+      setup:
+        dashboards:
+          enabled: false
+          beat: heartbeat
+          always_kibana: true
+        template:
+          enabled: false
+        kibana:
+          host: localhost:5601
+  roles:
+     - role: nephelaiio.heartbeat
+       tags: heartbeat
+
+- hosts: elk
+  become: yes
+  vars:
+    metricbeat_conf: "{{ lookup('template', 'metricbeat.yml.j2') | from_yaml }}"
+  roles:
+     - role: nephelaiio.metricbeat
+       tags: metricbeat
+
+- hosts: elk
+  become: yes
+  vars:
+    filebeat_package_state: latest
+    filebeat_conf_manage: yes
+    filebeat_conf:
+      filebeat.modules:
+      - module: system
+        syslog:
+          enabled: true
+          var.paths: ["/var/log/syslog"]
+        auth:
+           enabled: true
+           var.paths: ["/var/log/auth.log"]
+      output:
+        elasticsearch:
+          enabled: true
+          hosts:
+            - localhost:9200
+          protocol: "https"
+          username: elastic
+          password: "{{ es_password }}"
+          ssl.verification_mode: none
+      setup:
+        dashboards:
+          enabled: true
+          beat: filebeat
+          always_kibana: true
+        template:
+          enabled: true
+        kibana:
+          host: localhost:5601
+  roles:
+     - role: nephelaiio.filebeat
+       tags: filebeat
