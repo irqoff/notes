@@ -1,0 +1,17 @@
+input {
+  beats {
+    port => 5044
+  }
+}
+
+output {
+  elasticsearch {
+    hosts => ["https://elasticsearch:9200"]
+    ssl_certificate_verification => false
+    ssl => true
+    user => "{{ es_password }}"
+    password => "VzXceaYWz=bABJ97SEQz"
+    index => "%{[@metadata][beat]}-%{[@metadata][version]}" 
+    pipeline => "%{[@metadata][pipeline]}"
+  }
+}

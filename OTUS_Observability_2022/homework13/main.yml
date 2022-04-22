@@ -1,0 +1,147 @@
+---
+
+- hosts: elk
+  become: true
+  tasks:
+    - name: Install prerequisites
+      ansible.builtin.apt:
+        name:
+          - apt-transport-https
+          - python3-pip
+        update_cache: "yes"
+
+    - name: Add Docker GPG key
+      ansible.builtin.apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+
+    - name: Add Docker APT repository
+      ansible.builtin.apt_repository:
+        repo: "deb [arch=amd64] https://download.docker.com/linux/\
+          {{ ansible_distribution|lower }} {{ ansible_distribution_release }} \
+          stable"
+
+    - name: Install Docker
+      ansible.builtin.apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+        update_cache: "yes"
+
+    - name: Add to the docker group
+      ansible.builtin.user:
+        name: "{{ ansible_env['USER'] }}"
+        groups: docker
+        append: "yes"
+
+    - name: Install docker lib for community.docker.docker_image
+      ansible.builtin.pip:
+        name: docker
+
+- hosts: elk
+  become: true
+  vars:
+    es_image: docker.elastic.co/elasticsearch/elasticsearch:8.1.3
+    kibana_image: docker.elastic.co/kibana/kibana:8.1.3
+    logstash_image: docker.elastic.co/logstash/logstash:8.1.3
+  tasks:
+    - name: Pull images
+      community.docker.docker_image:
+        name: "{{ item }}"
+        source: pull
+      loop:
+        - "{{ es_image }}"
+        - "{{ kibana_image }}"
+
+    - ansible.posix.sysctl:
+       name: vm.max_map_count
+       value: '262144'
+
+    - name: Create a elk network
+      community.docker.docker_network:
+         name: elk
+
+    - name: Create a es container
+      community.docker.docker_container:
+        name: elasticsearch
+        image: "{{ es_image }}"
+        state: started
+        restart_policy: always
+        published_ports:
+          - 9200:9200
+          - 9300:9300
+        networks:
+          - name: elk
+
+    - name: Create a kibana container
+      community.docker.docker_container:
+        name: kibana
+        image: "{{ kibana_image }}"
+        state: started
+        restart_policy: always
+        published_ports:
+          - 5601:5601
+        networks:
+          - name: elk
+
+    - name: Create logstash config
+      copy:
+        dest: /srv/logstash.yml
+        src: logstash.yml
+        mode: 0664
+
+    - name: Create pipeline directory
+      file:
+        dest: /srv/pipeline
+        state: directory
+        mode: 0777
+
+    - name: Create a Logstash container
+      community.docker.docker_container:
+        name: logstash
+        image: "{{ logstash_image }}"
+        state: started
+        restart_policy: always
+        published_ports:
+        - 5044:5044
+        networks:
+          - name: elk
+        volumes:
+          - /srv/logstash.yml:/usr/share/logstash/config/logstash.yml
+          - /srv/pipeline/:/usr/share/logstash/pipeline/
+
+- hosts: elk
+  become: yes
+  vars:
+    elasticsearch_repo_major_version: 8
+    filebeat_package_state: latest
+    filebeat_conf_manage: yes
+    filebeat_conf:
+      filebeat.modules:
+      - module: system
+        syslog:
+          enabled: true
+          var.paths: ["/var/log/syslog"]
+        auth:
+           enabled: true
+           var.paths: ["/var/log/auth.log"]
+      output.logstash:
+         hosts: ["localhost:5044"]
+  roles:
+     - role: nephelaiio.filebeat
+       tags: filebeat
+  tasks:
+     - name: Copy filebeat pipeline
+       template:
+         src: filebeat.conf.j2
+         dest: /srv/pipeline/filebeat.conf
+         mode: '0664'
+       notify: restart logstash
+       tags: filebeat
+
+  handlers:
+    - name: restart logstash
+      community.docker.docker_container:
+        name: logstash
+        state: started
+        restart: yes
