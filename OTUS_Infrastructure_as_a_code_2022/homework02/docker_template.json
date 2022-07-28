@@ -1,0 +1,28 @@
+{
+  "variables": {
+    "packages": "{{env `PACKER_VAR_packages`}}",
+    "image": "{{env `PACKER_VAR_image`}}"
+  },
+
+  "builders": [
+    {
+      "type": "docker",
+      "image": "{{user `image`}}",
+      "commit": true
+    }
+  ],
+
+  "provisioners": [
+    {
+      "type": "shell",
+      "environment_vars": [ "DEBIAN_FRONTEND=noninteractive" ],
+      "inline": [
+        "echo 'updating apt cache'",
+        "apt update -y",
+        "apt install -y nginx nano git",
+        "apt install -y {{user `packages`}}"
+      ]
+    }
+  ]
+
+}
