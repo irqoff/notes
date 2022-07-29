@@ -1,9 +1,9 @@
 # homework02
 
-In addition to the task and the task with double asterisk, I also did:
+In addition to the task and the task with double asterisks, I also did:
 * parametized subnetworks by a variable
 * parametized MySQL hosts by dynamic block
-* use yandex_mdb_mysql_user and yandex_mdb_mysql_database to replace outdate blocks
+* use `yandex_mdb_mysql_user` and `yandex_mdb_mysql_database` to replace outdate blocks
 
 terraform apply output:
 ```
