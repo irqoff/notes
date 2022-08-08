@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Install elrepo
-yum install https://www.elrepo.org/elrepo-release-7.el7.elrepo.noarch.rpm
+yum install -y https://www.elrepo.org/elrepo-release-7.el7.elrepo.noarch.rpm
 # Install new kernel
 yum --enablerepo elrepo-kernel install kernel-ml -y
 # Remove older kernels (Only for demo! Not Production!)
