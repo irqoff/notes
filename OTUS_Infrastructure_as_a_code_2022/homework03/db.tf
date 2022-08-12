@@ -39,7 +39,7 @@ resource "yandex_mdb_mysql_user" "user" {
     password              = var.db_password
     authentication_plugin = "MYSQL_NATIVE_PASSWORD"
     permission {
-      database_name = "db"
+      database_name = yandex_mdb_mysql_database.wp.name
       roles         = ["ALL"]
     }
 }
