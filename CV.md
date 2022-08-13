@@ -2,18 +2,26 @@
 
 ## Summary
 
+In my future work, I would like to:
+* write infrastructure code and infrastructure tools/plugins/modules on Go or Python(like Pulumi, Terraform provider, Terratest, K8s operator, Prometheus exporter, etc)
+* write and debug application code on Go or Python
+* review my colleges infrastructure code
+* write test for infrastructure
+
+My experience:
 * More than 15 years experience in Linux, System administration, and DevOps
 * Expert level Linux administration
 * Excellent knowledge and experience with Ansible and Terraform IaC tools
 * Shell and Python scripting
 * Cloud experience with AWS and OpenStack
-* Docker, LXC and Singularity container and Kubernetes/Swarm orchestration experience
+* Docker, LXC and Singularity container and Kubernetes orchestration experience
 * Virtualization experience with KVM and Vagrant
 * Experience with GitLab and Jenkins CI/CD tools
 * Job scheduler experience with Slurm
 * Experience with networking, network services and network hardware
 * Database administration of MySQL and PostgreSQL. Experience with Redis, MongoDB, Kafka and ClickHouse
 * Clustering with keepalived, HAProxy and Pacemaker
+* HashiCorp Vault and Consul experience
 * Ceph maintenance and deployment
 * Monitoring experience with Prometheus, Grafana, ELK, Zabbix and Icinga
 
