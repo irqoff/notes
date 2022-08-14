@@ -10,8 +10,8 @@ In my future work, I would like to:
 
 My experience:
 * More than 15 years experience in Linux, System administration, and DevOps
-* Expert level Linux administration
-* Excellent knowledge and experience with Ansible and Terraform IaC tools
+* Expert level Linux administration(RHCSA)
+* Excellent knowledge and experience with Ansible and Terraform(HashiCorp Certified: Terraform Associate) IaC tools
 * Shell and Python scripting
 * Cloud experience with AWS and OpenStack
 * Docker, LXC and Singularity container and Kubernetes orchestration experience
