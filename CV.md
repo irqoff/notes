@@ -4,7 +4,7 @@
 
 In my future work, I would like to:
 * write infrastructure code and infrastructure tools/plugins/modules on Go or Python(like Pulumi, Terraform provider, Terratest, K8s operator, Prometheus exporter, etc)
-* write and debug application code on Go or Python
+* write and debug application code
 * review my colleges infrastructure code
 * write test for infrastructure
 
