@@ -72,6 +72,6 @@ app2                       : ok=13   changed=4    unreachable=0    failed=0    s
 
 Result:
 
-![Admin area]:(./images/wp1.png)
+![Admin area](./images/wp1.png)
 
-![Main page]:(./images/wp2.png)
+![Main page](./images/wp2.png)
