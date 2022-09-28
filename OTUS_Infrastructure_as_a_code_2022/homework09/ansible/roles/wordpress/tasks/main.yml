@@ -1,0 +1,70 @@
+---
+- name: Update apt-get repo and cache
+  apt: update_cache=yes force_apt_get=yes cache_valid_time=3600
+
+- name: install dependencies
+  package:
+    name:
+      - apache2
+      - ghostscript
+      - libapache2-mod-php
+      - mysql-server
+      - php
+      - php-bcmath
+      - php-curl
+      - php-imagick
+      - php-intl
+      - php-json
+      - php-mbstring
+      - php-mysql
+      - php-xml
+      - php-zip
+    state: present
+
+- name: Create the installation directory
+  file:
+    path: /srv/www
+    owner: www-data
+    state: directory
+
+- name: Install WordPress
+  unarchive:
+    src: https://wordpress.org/latest.tar.gz
+    dest: /srv/www
+    owner: www-data
+    remote_src: yes
+
+- name: Copy file with owner and permissions
+  template:
+    src: wordpress.conf.j2
+    dest: /etc/apache2/sites-available/wordpress.conf
+
+- name: Enable URL rewriting
+  apache2_module:
+    name: rewrite
+    state: present
+
+- name: Enable the site
+  shell: a2ensite wordpress
+
+- name: Disable the default “It Works” site
+  shell: a2dissite 000-default
+
+- name: Reload service apache2
+  service:
+    name: apache2
+    state: reloaded
+
+- name: Install mysql cert
+  copy:
+    src: ./files/root.crt
+    dest: /usr/local/share/ca-certificates/root.crt
+
+- name: Update cert index
+  shell: /usr/sbin/update-ca-certificates
+
+- name: Configure WordPress
+  template:
+    src: wp-config.php.j2
+    dest: "/srv/www/wordpress/wp-config.php"
+    owner: "www-data"
