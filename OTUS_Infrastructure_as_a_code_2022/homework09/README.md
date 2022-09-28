@@ -2,8 +2,8 @@
 
 In this homework I:
 
- [x] write Python dynamic inventory script that parse `terraform output`
- [x] write and use Ansible role
+ - [x] write Python dynamic inventory script that parse `terraform output`
+ - [x] write and use Ansible role
 
 ansible logs:
 ```
