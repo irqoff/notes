@@ -1,0 +1,20 @@
+---
+galaxy_info:
+  role_name: wordpress
+  author: sablin
+  description: Wordpress CMS System
+  license: "license (MIT)"
+
+  min_ansible_version: 2.9
+
+  galaxy_tags:
+    - linux
+    - server
+    - web
+    - wordpress
+    - cms
+
+  platforms:
+    - name: Ubuntu
+      versions:
+        - Focal

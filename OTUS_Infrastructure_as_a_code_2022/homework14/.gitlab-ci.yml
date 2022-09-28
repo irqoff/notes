@@ -1,0 +1,70 @@
+stages:   
+    - check
+    - deploy_infra
+    - deploy_app
+    - destroy
+
+.terraform_prepare: &tf_setup 
+    before_script:
+        - mkdir ~/.ssh/
+        - echo $ID_RSA_PUB > ~/.ssh/yc.pub
+        - cd terraform
+        - terraform init     
+
+.ansible: &ansible
+  stage: deploy_app
+  when: manual
+  image: soaron/ansible:2.9
+  before_script:
+    - mkdir ~/.ssh/
+    - echo "$ID_RSA" | base64 -d > ~/.ssh/yc
+    - chmod -R 700 ~/.ssh
+    - cd ansible
+    - chmod o-w .
+
+variables:
+    TF_VAR_yc_token: $yc_token
+    TF_VAR_yc_cloud: $yc_cloud
+    TF_VAR_yc_folder: $yc_folder
+    TF_VAR_db_password: $db_password
+
+Check terraform file:
+    stage: check
+    image: mrgreyves/terraform:0.3
+    <<:  *tf_setup
+    script:        
+        - tflint
+        - terraform validate
+        - terraform plan
+    only: 
+        - master
+
+Deploy infrustructure:
+    stage: deploy_infra
+    image: mrgreyves/terraform:0.3
+    <<:  *tf_setup
+    script:
+        - terraform apply --auto-approve
+    when: manual        
+    only: 
+        - master        
+
+Destroy infrustructure:
+    stage: destroy
+    image: mrgreyves/terraform:0.3
+    <<:  *tf_setup
+    script:        
+        - terraform destroy --auto-approve
+    when: manual
+    only: 
+        - master
+
+Install application:
+    stage: deploy_app
+    <<: *ansible
+    script:
+        - ansible --version
+        - ansible-playbook playbooks/install.yml
+    when: manual
+    only:
+        - master
