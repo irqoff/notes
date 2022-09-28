@@ -1,0 +1,1 @@
+{"rsync":{"/vagrant":{"type":"rsync","guestpath":"/vagrant","hostpath":"/home/irqoff/.irqoff/notes/OTUS_Administrator_Linux_Professional_2022/homework15","disabled":false,"__vagrantfile":true,"owner":"vagrant","group":"vagrant"}}}

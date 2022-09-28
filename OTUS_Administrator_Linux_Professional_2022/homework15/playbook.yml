@@ -1,0 +1,9 @@
+---
+- name: Install nginx
+  hosts: all
+  become: yes
+  vars:
+    nginx_worker_processes: 10
+    nginx_main_port: 8080
+  roles:
+    - role: nginx
