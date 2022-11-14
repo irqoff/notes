@@ -43,7 +43,7 @@ Tasks:
 
 Environment: Linux, Ansible, Jenkins, GitLab, MySQL, PostgreSQL, Kafka, ClickHouse, Redis, Docker, KVM, nginx, Consul, NetBox, Vault
 
-### Dev 2017 - Apr 2021 Senior DevOps Engineer
+### Dec 2017 - Apr 2021 Senior DevOps Engineer
 
 Company: IT Outsourcing, EPAM Systems
 
